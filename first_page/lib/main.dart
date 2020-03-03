@@ -1,8 +1,13 @@
+import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'signup.dart';
 import 'top_screen.dart';
+import 'package:http/http.dart' as http;
 
 void main() => runApp(MyApp());
+
+String username='';
 
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
@@ -24,6 +29,41 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+
+  TextEditingController user=new TextEditingController();
+  TextEditingController pass=new TextEditingController();
+  TextEditingController level=new TextEditingController();
+
+  String msg='';
+
+  Future<List> _login() async {
+    final response = await http.post("http://192.168.43.104/my_store/login.php", body: {
+      "username": user.text,
+      "password": pass.text
+    });
+    
+    var datauser = json.decode(response.body);
+
+    if(datauser.length==0){
+      setState(() {
+        msg="Login Fail";
+      });
+    }else{
+      if(datauser[0]['level']=='admin'){
+        Navigator.pushReplacementNamed(context, '/top_screen');
+      }else if(datauser[0]['level']=='member'){
+        Navigator.pushReplacementNamed(context, '/signup');
+      }
+
+      setState(() {
+        username= datauser[0]['username'];
+      });
+
+    }
+
+    return datauser;
+  }
+
   final formkey = GlobalKey<FormState>();
   @override
   Widget build(BuildContext context) {
@@ -37,6 +77,7 @@ class _MyHomePageState extends State<MyHomePage> {
             child: ListView(
               children: <Widget>[
                 TextFormField(
+                    controller: user,
                     decoration: InputDecoration(labelText: 'Enrollment No'),
                     validator: (value){
                       if(value.isEmpty){
@@ -45,6 +86,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       return null;                    },
                     ),
                     TextFormField(
+                    controller: pass,
                     decoration: InputDecoration(labelText: 'password'),
                     validator: (value){
                       if(value.isEmpty){
@@ -58,9 +100,9 @@ class _MyHomePageState extends State<MyHomePage> {
                 RaisedButton(
                   onPressed: () {
                     if (formkey.currentState.validate()) {
-                      Navigator.push(context,
-                          MaterialPageRoute(builder: (context) => My_topscreen()),);
-                      
+                      //Navigator.push(context,
+                        //  MaterialPageRoute(builder: (context) => My_topscreen()),);
+                      _login();
                     }
                   },
                   child: Text('login'),
@@ -70,7 +112,6 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
                  RaisedButton(
                   onPressed: () {
-                   
                       Navigator.push(context,
                           MaterialPageRoute(builder: (context) => MySignup()),);
                       
