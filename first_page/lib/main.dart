@@ -32,21 +32,23 @@ class _MyHomePageState extends State<MyHomePage> {
 
   TextEditingController user=new TextEditingController();
   TextEditingController pass=new TextEditingController();
-  TextEditingController level=new TextEditingController();
-
-  String msg='';
+  String response = "NULL";
 
   Future<List> _login() async {
-    final response = await http.post("http://192.168.43.104/my_store/login.php", body: {
-      "username": user.text,
-      "password": pass.text
-    });
-    
-    var datauser = json.decode(response.body);
 
-    if(datauser.length==0){
+    var datauser = jsonEncode({
+      "username": user.text,
+      "password": pass.text,
+    });
+    var url = "http://192.168.0.109/my_store/login.php" + datauser;
+    var result = await http.post(url);
+    setState(() {
+      this.response = result.body;
+    });
+    print(response);
+    /*if(datauser.length==0){
       setState(() {
-        msg="Login Fail";
+        response="Login Fail";
       });
     }else{
       if(datauser[0]['level']=='admin'){
@@ -59,9 +61,8 @@ class _MyHomePageState extends State<MyHomePage> {
         username= datauser[0]['username'];
       });
 
-    }
+    }*/
 
-    return datauser;
   }
 
   final formkey = GlobalKey<FormState>();
